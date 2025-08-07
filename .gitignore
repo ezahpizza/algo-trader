@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+.env
+service_account.json
+example*.py
+GOOGLE_SHEETS_TEMPLATE.md
+
+
+*.log

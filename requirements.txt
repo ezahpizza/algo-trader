@@ -1,0 +1,14 @@
+yfinance
+pandas
+numpy
+ta
+scikit-learn
+joblib
+gspread
+google-auth
+python-dotenv
+requests
+schedule
+apscheduler
+matplotlib
+seaborn
