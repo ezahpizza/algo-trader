@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class MLTrainer:
     """Machine Learning model trainer for price prediction"""
     
-    def __init__(self, model_type: str = 'logistic'):
+    def __init__(self, model_type: str = 'decision_tree'):
         """
         Initialize ML trainer
         

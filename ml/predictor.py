@@ -3,6 +3,7 @@ import numpy as np
 import logging
 from typing import Dict, Any
 from ml.trainer import MLTrainer
+from config import config
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class MLPredictor:
         Args:
             model_path: Path to saved model (will load if exists)
         """
-        self.trainer = MLTrainer()
+        self.trainer = MLTrainer(model_type=config.MODEL_TYPE)
         self.model_loaded = False
         
         if model_path and self.trainer.load_model(model_path):
