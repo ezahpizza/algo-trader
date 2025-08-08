@@ -22,25 +22,40 @@ class Backtester:
         self.trades = []
         self.portfolio = []
         
-        logger.info(f"Initialized backtester with capital: ₹{initial_capital:,.2f}")
+        logger.info(f"Initialized backtester with capital: Rs.{initial_capital:,.2f}")
     
-    def run_backtest(self, data: pd.DataFrame, signals: pd.DataFrame) -> Dict[str, Any]:
+    def run_backtest(self, data: pd.DataFrame, signals: pd.DataFrame = None) -> Dict[str, Any]:
         """
         Run backtest on historical data with signals
         
         Args:
-            data: DataFrame with OHLCV data
-            signals: DataFrame with trading signals
+            data: DataFrame with OHLCV data and optionally signals
+            signals: DataFrame with trading signals (optional if data already contains signals)
             
         Returns:
             Dictionary with backtest results
         """
         try:
-            # Merge data and signals
-            backtest_data = pd.merge(data, signals[['signal', 'signal_type', 'signal_reason']], 
-                                   left_index=True, right_index=True, how='left')
-            backtest_data['signal'] = backtest_data['signal'].fillna(0)
-            backtest_data['signal_type'] = backtest_data['signal_type'].fillna('HOLD')
+            # Check if signals are already in data or need to be merged
+            if signals is not None and not data.equals(signals):
+                # Merge data and signals
+                backtest_data = pd.merge(data, signals[['signal', 'signal_type', 'signal_reason']], 
+                                       left_index=True, right_index=True, how='left')
+                backtest_data['signal'] = backtest_data['signal'].fillna(0)
+                backtest_data['signal_type'] = backtest_data['signal_type'].fillna('HOLD')
+            else:
+                # Signals are already in data or data is the same as signals
+                backtest_data = data.copy()
+                # Ensure signal columns exist
+                if 'signal' not in backtest_data.columns:
+                    backtest_data['signal'] = 0
+                if 'signal_type' not in backtest_data.columns:
+                    backtest_data['signal_type'] = 'HOLD'
+                if 'signal_reason' not in backtest_data.columns:
+                    backtest_data['signal_reason'] = ''
+                
+                backtest_data['signal'] = backtest_data['signal'].fillna(0)
+                backtest_data['signal_type'] = backtest_data['signal_type'].fillna('HOLD')
             
             # Initialize portfolio tracking
             portfolio = {
@@ -86,7 +101,7 @@ class Backtester:
             backtest_results['daily_portfolio'] = daily_portfolio
             
             logger.info(f"Backtest completed: {len(self.trades)} trades, "
-                       f"Final value: ₹{backtest_results['final_value']:,.2f}")
+                       f"Final value: Rs.{backtest_results['final_value']:,.2f}")
             
             return backtest_results
             
@@ -120,7 +135,7 @@ class Backtester:
                 }
                 
                 portfolio['trades'].append(trade)
-                logger.debug(f"BUY: {shares_bought} shares at ₹{buy_price:.2f}")
+                logger.debug(f"BUY: {shares_bought} shares at Rs.{buy_price:.2f}")
                 
         except Exception as e:
             logger.error(f"Error executing buy order: {str(e)}")
@@ -165,7 +180,7 @@ class Backtester:
                 }
                 
                 portfolio['trades'].append(trade)
-                logger.debug(f"SELL: {shares_to_sell} shares at ₹{sell_price:.2f}, P&L: ₹{pnl:.2f}")
+                logger.debug(f"SELL: {shares_to_sell} shares at Rs.{sell_price:.2f}, P&L: Rs.{pnl:.2f}")
                 
         except Exception as e:
             logger.error(f"Error executing sell order: {str(e)}")
@@ -187,6 +202,16 @@ class Backtester:
             completed_trades = [t for t in self.trades if t['type'] == 'SELL']
             total_trades = len(completed_trades)
             
+            # Initialize variables
+            winning_trades = []
+            losing_trades = []
+            win_rate = 0
+            total_pnl = 0
+            avg_win = 0
+            avg_loss = 0
+            avg_trade = 0
+            profit_factor = 0
+            
             if total_trades > 0:
                 # P&L metrics
                 trade_pnls = [t['pnl'] for t in completed_trades]
@@ -201,13 +226,6 @@ class Backtester:
                 
                 # Risk metrics
                 profit_factor = abs(sum(winning_trades) / sum(losing_trades)) if losing_trades else float('inf')
-            else:
-                win_rate = 0
-                total_pnl = 0
-                avg_win = 0
-                avg_loss = 0
-                avg_trade = 0
-                profit_factor = 0
             
             # Drawdown calculation
             df_portfolio['peak'] = df_portfolio['total_value'].cummax()

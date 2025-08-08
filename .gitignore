@@ -13,6 +13,7 @@ wheels/
 service_account.json
 example*.py
 GOOGLE_SHEETS_TEMPLATE.md
+*.pkl
 
 
 *.log

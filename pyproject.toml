@@ -18,5 +18,6 @@ dependencies = [
     "scikit-learn>=1.7.1",
     "seaborn>=0.13.2",
     "ta>=0.11.0",
+    "xgboost>=3.0.3",
     "yfinance>=0.2.65",
 ]

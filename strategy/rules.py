@@ -163,7 +163,18 @@ class TradingStrategy:
         filtered_signals = [signal_dates[0]]  # Keep first signal
         
         for signal_date in signal_dates[1:]:
-            days_since_last = (signal_date - filtered_signals[-1]).days
+            # Convert to pandas Timestamp if needed for proper date arithmetic
+            if hasattr(signal_date, 'to_pydatetime'):
+                signal_date_conv = signal_date.to_pydatetime()
+            else:
+                signal_date_conv = pd.to_datetime(signal_date)
+                
+            if hasattr(filtered_signals[-1], 'to_pydatetime'):
+                last_signal_conv = filtered_signals[-1].to_pydatetime()
+            else:
+                last_signal_conv = pd.to_datetime(filtered_signals[-1])
+                
+            days_since_last = (signal_date_conv - last_signal_conv).days
             if days_since_last >= min_gap_days:
                 filtered_signals.append(signal_date)
         
@@ -244,8 +255,12 @@ class TradingStrategy:
             # Average gap between signals
             signal_dates = data[data['signal'] != 0].index
             if len(signal_dates) > 1:
-                gaps = [(signal_dates[i] - signal_dates[i-1]).days 
-                       for i in range(1, len(signal_dates))]
+                gaps = []
+                for i in range(1, len(signal_dates)):
+                    # Convert to pandas Timestamp for proper date arithmetic
+                    date1 = pd.to_datetime(signal_dates[i])
+                    date2 = pd.to_datetime(signal_dates[i-1])
+                    gaps.append((date1 - date2).days)
                 metrics['avg_signal_gap'] = np.mean(gaps)
             else:
                 metrics['avg_signal_gap'] = 0

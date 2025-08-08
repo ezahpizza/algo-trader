@@ -132,10 +132,8 @@ def calculate_volume_indicators(data: pd.DataFrame) -> dict:
     try:
         indicators = {}
         
-        # Volume moving average
-        indicators['volume_sma_20'] = ta.volume.VolumeSMAIndicator(
-            data['close'], data['volume'], window=20
-        ).volume_sma()
+        # Volume moving average (manual calculation since VolumeSMAIndicator doesn't exist)
+        indicators['volume_sma_20'] = data['volume'].rolling(window=20).mean()
         
         # On-Balance Volume
         indicators['obv'] = ta.volume.OnBalanceVolumeIndicator(

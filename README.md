@@ -23,7 +23,7 @@ A comprehensive, production-ready algorithmic trading system in Python for NIFTY
 - Custom technical features
 
 ### Machine Learning
-- **Models**: Logistic Regression, Decision Tree, Random Forest
+- **Models**: Logistic Regression, Decision Tree, Random Forest, XGBoost
 - **Features**: RSI, MACD histogram, Volume delta, Momentum, SMA slopes
 - **Target**: Binary next-day price movement prediction
 - **Validation**: Time-series aware cross-validation
@@ -256,7 +256,7 @@ SMA_LONG = 50
 ### ML Model Options
 ```python
 # Available models
-MODEL_TYPES = ['logistic', 'decision_tree', 'random_forest']
+MODEL_TYPES = ['logistic', 'decision_tree', 'random_forest', 'xgboost']
 
 # Training parameters
 TRAIN_TEST_SPLIT_RATIO = 0.8

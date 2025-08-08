@@ -4,6 +4,7 @@ numpy
 ta
 scikit-learn
 joblib
+xgboost
 gspread
 google-auth
 python-dotenv

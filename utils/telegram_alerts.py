@@ -1,5 +1,6 @@
 import requests
 import logging
+import time
 from typing import Dict, Any
 from config import config
 
@@ -26,13 +27,14 @@ class TelegramAlert:
         else:
             logger.warning("Telegram credentials not provided, alerts disabled")
     
-    def send_message(self, message: str, parse_mode: str = 'HTML') -> bool:
+    def send_message(self, message: str, parse_mode: str = 'HTML', max_retries: int = 3) -> bool:
         """
-        Send a message to Telegram
+        Send a message to Telegram with retry logic
         
         Args:
             message: Message text
             parse_mode: Message formatting ('HTML' or 'Markdown')
+            max_retries: Maximum number of retry attempts
             
         Returns:
             True if sent successfully, False otherwise
@@ -49,15 +51,35 @@ class TelegramAlert:
                 'parse_mode': parse_mode
             }
             
-            response = requests.post(url, json=payload, timeout=10)
-            
-            if response.status_code == 200:
-                logger.info("Telegram message sent successfully")
-                return True
-            else:
-                logger.error(f"Telegram API error: {response.status_code} - {response.text}")
-                return False
-                
+            for attempt in range(max_retries):
+                try:
+                    response = requests.post(url, json=payload, timeout=15)
+                    
+                    if response.status_code == 200:
+                        logger.info("Telegram message sent successfully")
+                        return True
+                    else:
+                        logger.error(f"Telegram API error: {response.status_code} - {response.text}")
+                        if attempt < max_retries - 1:
+                            logger.info(f"Retrying Telegram message (attempt {attempt + 2}/{max_retries})")
+                            continue
+                        return False
+                        
+                except requests.exceptions.ConnectionError as e:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"Connection error, retrying (attempt {attempt + 2}/{max_retries}): {str(e)}")
+                        continue
+                    else:
+                        logger.error(f"Failed to send Telegram message after {max_retries} attempts: {str(e)}")
+                        return False
+                except requests.exceptions.Timeout as e:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"Timeout error, retrying (attempt {attempt + 2}/{max_retries}): {str(e)}")
+                        continue
+                    else:
+                        logger.error(f"Telegram message timeout after {max_retries} attempts: {str(e)}")
+                        return False
+                        
         except Exception as e:
             logger.error(f"Error sending Telegram message: {str(e)}")
             return False
@@ -84,7 +106,7 @@ class TelegramAlert:
             message = f"<b>🚨 TRADING SIGNAL ALERT</b>\n\n"
             message += f"<b>Signal:</b> {signal_type}\n"
             message += f"<b>Stock:</b> {symbol}\n"
-            message += f"<b>Price:</b> ₹{price:.2f}\n"
+            message += f"<b>Price:</b> Rs.{price:.2f}\n"
             message += f"<b>Reason:</b> {reason}\n"
             
             if ml_prediction:
@@ -235,11 +257,11 @@ class TelegramAlert:
             
             message += f"<b>Signals Generated:</b> {signals_generated}\n"
             message += f"<b>Trades Executed:</b> {trades_executed}\n"
-            message += f"<b>Daily P&L:</b> ₹{daily_pnl:.2f}\n"
+            message += f"<b>Daily P&L:</b> Rs.{daily_pnl:.2f}\n"
             
             if 'portfolio_value' in summary_data:
                 portfolio_value = summary_data['portfolio_value']
-                message += f"<b>Portfolio Value:</b> ₹{portfolio_value:,.2f}\n"
+                message += f"<b>Portfolio Value:</b> Rs.{portfolio_value:,.2f}\n"
             
             if 'ml_accuracy' in summary_data:
                 ml_accuracy = summary_data['ml_accuracy']

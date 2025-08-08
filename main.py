@@ -1,12 +1,11 @@
-def main():
-    import logging
+import logging
 import os
 import json
 import pandas as pd
 import numpy as np
 import schedule
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, Any, List
 import traceback
 
@@ -25,7 +24,6 @@ from utils.telegram_alerts import TelegramAlert
 # Setup logging
 def setup_logging():
     """Setup logging configuration"""
-    import logging
     
     os.makedirs(os.path.dirname(config.LOG_FILE_PATH), exist_ok=True)
     
@@ -33,7 +31,7 @@ def setup_logging():
         level=getattr(logging, config.LOG_LEVEL),
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(config.LOG_FILE_PATH),
+            logging.FileHandler(config.LOG_FILE_PATH, encoding='utf-8'),
             logging.StreamHandler()
         ]
     )
@@ -57,7 +55,7 @@ class AlgoTradingSystem:
         self.data_fetcher = StockDataFetcher()
         self.strategy = TradingStrategy()
         self.feature_engineer = FeatureEngineer()
-        self.ml_trainer = MLTrainer()
+        self.ml_trainer = MLTrainer(model_type=config.MODEL_TYPE)
         self.ml_predictor = MLPredictor(config.MODEL_SAVE_PATH)
         self.backtester = Backtester()
         self.gsheet_logger = GoogleSheetsLogger()
@@ -178,8 +176,8 @@ class AlgoTradingSystem:
             for symbol, data in stock_data.items():
                 logger.info(f"Running backtest for {symbol}")
                 
-                # Run backtest for this stock
-                results = self.backtester.run_backtest(data, data)
+                # Run backtest for this stock (data already contains signals)
+                results = self.backtester.run_backtest(data)
                 
                 if results:
                     all_results[symbol] = results
@@ -488,10 +486,6 @@ def main():
     except Exception as e:
         logger.error(f"Fatal error: {str(e)}")
         logger.error(traceback.format_exc())
-
-if __name__ == "__main__":
-    main()
-
 
 if __name__ == "__main__":
     main()

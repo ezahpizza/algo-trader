@@ -9,7 +9,7 @@ class Config:
     """Global configuration class for the trading system"""
     
     # Stock Data Configuration
-    NIFTY_50_STOCKS: List[str] = os.getenv('NIFTY_50_STOCKS', 'RELIANCE.NS,TCS.NS,INFY.NS').split(',')
+    NIFTY_50_STOCKS: List[str] = os.getenv('NIFTY_50_STOCKS', 'RELIANCE.NS,TCS.NS,INFY.NS,HDFCBANK.NS,ICICIBANK.NS').split(',')
     LOOKBACK_PERIOD: int = int(os.getenv('LOOKBACK_PERIOD', '365'))
     DATA_INTERVAL: str = os.getenv('DATA_INTERVAL', '1d')
     
@@ -21,6 +21,7 @@ class Config:
     SMA_LONG: int = int(os.getenv('SMA_LONG', '50'))
     
     # ML Configuration
+    MODEL_TYPE: str = os.getenv('MODEL_TYPE', 'random_forest')  # Options: 'logistic', 'decision_tree', 'random_forest', 'xgboost'
     TRAIN_TEST_SPLIT_RATIO: float = float(os.getenv('TRAIN_TEST_SPLIT_RATIO', '0.8'))
     MODEL_SAVE_PATH: str = os.getenv('MODEL_SAVE_PATH', './models/model.pkl')
     
